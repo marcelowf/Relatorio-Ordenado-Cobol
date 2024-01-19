@@ -36,11 +36,11 @@
 
        FD RELATORIO RECORDING MODE IS F.
        01 FL-RELATORIO-ARQ.
-           02 RELATORIO-CNPJ  PIC 9(14).
+           02 RELATORIO-CNPJ  PIC X(14).
            02 RELATORIO-SPAC01 PIC X(06).
-           02 RELATORIO-SIT   PIC 9(02).
+           02 RELATORIO-SIT   PIC X(02).
            02 RELATORIO-SPAC02 PIC X(18).
-           02 RELATORIO-VALOR PIC 9(13)V99.
+           02 RELATORIO-VALOR PIC ZZZZZZZZZZZ99V99.
 
        SD ARQ-SORT RECORDING MODE IS F BLOCK CONTAINS 0 RECORDS.
        01 WK-ARQ-SORT                    PIC X(33).
@@ -50,13 +50,34 @@
           05 ARQ-S-VALOR PIC 9(13)V99.
           05 ARQ-S-FIM   PIC X(02).
 
-
-
        WORKING-STORAGE SECTION.
        01 AS-STATUS-E  PIC 9(02) VALUE ZEROS.
        01 AS-STATUS-S  PIC 9(02) VALUE ZEROS.
        01 AS-STATUS-SD PIC 9(02) VALUE ZEROS.
        01 WK-FIM       PIC X(01) VALUE SPACES.
+
+       01 WK-CABEC01  PIC X(55) VALUE ALL '='.
+
+       01 WK-CABEC02.
+           02 WK-CABEC02-TITU PIC X(32) VALUE 'Meu relatório ordenado'.
+           02 WK-CABEC02-DATA PIC XXXXXXXXXX.
+           02 WK-CABEC02-SPAC PIC X(05).
+           02 WK-CABEC02-HORA PIC XXXXXXXX.
+
+       01 WK-CABEC03.
+           02 WK-CABEC03-CNPJ PIC X(20) VALUE 'CNPJ'.
+           02 WK-CABEC03-SIT  PIC X(20) VALUE 'SITUACAO'.
+           02 WK-CABEC03-VALO PIC X(15) VALUE 'VALOR'.
+
+       01 WK-DATA-SYS.
+           02 WK-YEAR-SYS  PIC 9(04) VALUE ZEROS.
+           02 WK-MONTH-SYS PIC 9(02) VALUE ZEROS.
+           02 WK-DAY-SYS   PIC 9(02) VALUE ZEROS.
+
+       01 WK-HORA-SYS.
+           02 WK-HOUR-SYS   PIC 9(02) VALUE ZEROS.
+           02 WK-MINUTE-SYS PIC 9(02) VALUE ZEROS.
+           02 WK-SECOND-SYS PIC 9(02) VALUE ZEROS.
 
        PROCEDURE DIVISION.
            PERFORM 1000-INICIALIZAR.
@@ -65,6 +86,8 @@
       *     INCIALIZACAO DO PROGRAMA
       *-----------------------------------------------------------------
        1000-INICIALIZAR SECTION.
+           PERFORM 1100-INICIALIZAR-DATA-HORA
+
            OPEN INPUT LISTA.
            IF AS-STATUS-E NOT EQUAL ZEROS
                DISPLAY 'DEU ERRO NA ABERTURA ' AS-STATUS-E
@@ -75,12 +98,54 @@
                DISPLAY 'ERRO DE ABERTURA DE ARQUIVO ' AS-STATUS-S
            END-IF.
 
+           PERFORM 1200-INICIALIZAR-CABECALHO
+
            SORT ARQ-SORT
                ASCENDING KEY ARQ-S-CNPJ
                INPUT PROCEDURE 2000-PROCESSAR
                OUTPUT PROCEDURE 2100-IMPRIMIR-SORT
            .
        1000-INICIALIZAR-EXIT.
+           EXIT.
+      *-----------------------------------------------------------------
+      *     INCIALIZACAO DATA E HORA
+      *-----------------------------------------------------------------
+       1100-INICIALIZAR-DATA-HORA SECTION.
+           ACCEPT WK-DATA-SYS FROM DATE YYYYMMDD
+
+           MOVE WK-DAY-SYS TO WK-CABEC02-DATA (1:2)
+           MOVE WK-MONTH-SYS TO WK-CABEC02-DATA (4:2)
+           MOVE WK-YEAR-SYS TO WK-CABEC02-DATA (7:4)
+           MOVE '/' TO WK-CABEC02-DATA (3:1)
+                       WK-CABEC02-DATA (6:1)
+
+           ACCEPT WK-HORA-SYS FROM TIME.
+
+           MOVE WK-HOUR-SYS TO WK-CABEC02-HORA (1:2)
+           MOVE WK-MINUTE-SYS TO WK-CABEC02-HORA (4:2)
+           MOVE WK-SECOND-SYS TO WK-CABEC02-HORA (7:2)
+           MOVE ':' TO WK-CABEC02-HORA (3:1)
+                       WK-CABEC02-HORA (6:1)
+       .
+       1100-INICIALIZAR-DATA-HORA-EXIT.
+           EXIT.
+      *-----------------------------------------------------------------
+      *     INCIALIZACAO CABECALHO
+      *-----------------------------------------------------------------
+       1200-INICIALIZAR-CABECALHO SECTION.
+           MOVE WK-CABEC01 TO FL-RELATORIO-ARQ
+           WRITE FL-RELATORIO-ARQ.
+
+           MOVE WK-CABEC02 TO FL-RELATORIO-ARQ
+           WRITE FL-RELATORIO-ARQ AFTER ADVANCING 1 LINE.
+
+           MOVE WK-CABEC01 TO FL-RELATORIO-ARQ
+           WRITE FL-RELATORIO-ARQ AFTER ADVANCING 1 LINE.
+
+           MOVE WK-CABEC03 TO FL-RELATORIO-ARQ
+           WRITE FL-RELATORIO-ARQ AFTER ADVANCING 1 LINE.
+
+       1200-INICIALIZAR-CABECALHO-EXIT.
            EXIT.
       *-----------------------------------------------------------------
       *     PROCESSAMENTO
