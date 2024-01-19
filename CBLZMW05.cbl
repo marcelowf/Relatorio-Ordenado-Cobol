@@ -12,15 +12,15 @@
        FILE-CONTROL.
 
        SELECT LISTA ASSIGN TO
-           'C:\VOLVO_ESTAGIO\IDE_COBOL\Exercício05\Devedores.txt'
+           'C:\Exercício05\Devedores.txt'
            FILE STATUS IS AS-STATUS-E.
 
        SELECT RELATORIO ASSIGN TO
-           'C:\VOLVO_ESTAGIO\IDE_COBOL\Exercício05\Relatorio.txt'
+           'C:\Exercício05\Relatorio.txt'
            FILE STATUS IS AS-STATUS-S.
 
        SELECT ARQ-SORT ASSIGN TO
-           'C:\VOLVO_ESTAGIO\IDE_COBOL\Exercício05Arqsort.txt'
+           'C:\Exercício05Arqsort.txt'
            FILE STATUS IS AS-STATUS-SD.
 
        DATA DIVISION.
